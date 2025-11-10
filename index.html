@@ -356,6 +356,9 @@
             min-height: 250px; 
             background: #eee; 
             border-radius: 12px; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         
         #close-ad-btn {
@@ -391,14 +394,6 @@
             border: 1.5px solid var(--border-color);
             width: 90%;
             max-width: 400px;
-        }
-        
-        #tap-card-iframe {
-            width: 100%;
-            height: 300px;
-            border: none;
-            border-radius: 12px;
-            margin-bottom: 15px;
         }
         
         #close-tap-card-btn {
@@ -471,7 +466,16 @@
         <div id="ad-popup-box">
             <h4>বিজ্ঞাপন</h4>
             <div id="ad-placeholder">
-                <!-- Ad content will be loaded here -->
+                <script type="text/javascript">
+                    atOptions = {
+                        'key' : '1e07401901ac4fbae023c7bd388874ed',
+                        'format' : 'iframe',
+                        'height' : 250,
+                        'width' : 300,
+                        'params' : {}
+                    };
+                </script>
+                <script type="text/javascript" src="//www.highperformanceformat.com/1e07401901ac4fbae023c7bd388874ed/invoke.js"></script>
             </div>
             <button id="close-ad-btn">বন্ধ করুন</button>
         </div>
@@ -480,7 +484,18 @@
     <div id="tap-card-popup" class="hidden">
         <div id="tap-card-box">
             <h4>ট্যাপ কার্ড</h4>
-            <iframe id="tap-card-iframe" src="about:blank"></iframe>
+            <div id="tap-card-ad-container" style="display: flex; justify-content: center; align-items: center; min-height: 250px; margin-bottom: 15px;">
+                <script type="text/javascript">
+                    atOptions = {
+                        'key' : '1e07401901ac4fbae023c7bd388874ed',
+                        'format' : 'iframe',
+                        'height' : 250,
+                        'width' : 300,
+                        'params' : {}
+                    };
+                </script>
+                <script type="text/javascript" src="//www.highperformanceformat.com/1e07401901ac4fbae023c7bd388874ed/invoke.js"></script>
+            </div>
             <button id="close-tap-card-btn">বন্ধ করুন</button>
         </div>
     </div>
@@ -522,8 +537,7 @@
                 <div class="quiz-container">
                     <div class="quiz-question" id="quiz-question">প্রশ্ন লোড হচ্ছে...</div>
                     <div class="quiz-options" id="quiz-options">
-                        <!-- Options will be populated by JavaScript -->
-                    </div>
+                        </div>
                     <div id="quiz-result"></div>
                     <button id="next-question-btn" class="btn btn-primary hidden">পরবর্তী প্রশ্ন</button>
                 </div>
@@ -631,7 +645,6 @@
         </button>
     </nav>
     
-    <!-- Firebase scripts at the end for better performance -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     
@@ -1283,6 +1296,5 @@
             setTimeout(initializeApp, 100);
         });
     </script>
-    <script type='text/javascript' src='//pl26987417.effectivegatecpm.com/43/5d/62/435d62c15267ad8ac72876a00ea204bb.js'></script>
 </body>
 </html>
