@@ -328,6 +328,41 @@
             margin-top: 20px;
         }
 
+        #quiz-complete-popup {
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%;
+            background: rgba(0,0,0,0.5); 
+            z-index: 2000;
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            backdrop-filter: blur(8px); 
+            -webkit-backdrop-filter: blur(8px);
+        }
+        
+        #quiz-complete-box {
+            background: var(--card-bg-color); 
+            padding: 20px; 
+            border-radius: 20px; 
+            text-align: center;
+            border: 1.5px solid var(--border-color);
+            width: 90%;
+            max-width: 400px;
+        }
+        
+        #close-quiz-complete-btn {
+            margin-top: 15px; 
+            padding: 10px 20px; 
+            background: var(--primary-color);
+            color: var(--light-text-color); 
+            border: none; 
+            border-radius: 10px; 
+            font-weight: 600;
+        }
+
         #ad-popup {
             position: fixed; 
             top: 0; 
@@ -600,6 +635,14 @@
         </div>
     </div>
 
+    <div id="quiz-complete-popup" class="hidden">
+        <div id="quiz-complete-box">
+            <h4>কুইজ সম্পন্ন!</h4>
+            <p id="quiz-complete-message">আপনি সমস্ত প্রশ্ন সফলভাবে সম্পন্ন করেছেন!</p>
+            <button id="close-quiz-complete-btn">ঠিক আছে</button>
+        </div>
+    </div>
+
     <div class="container">
         <div id="home-page" class="page">
             <div class="header">
@@ -789,35 +832,7 @@
         let currentQuestionIndex = 0;
         let quizQuestions = [];
         let isFirebaseInitialized = false;
-
-        // Quiz Data
-        const quizData = [
-            {
-                question: "বাংলাদেশের জাতীয় ফুল কোনটি?",
-                options: ["গোলাপ", "শাপলা", "গাঁদা", "কমল"],
-                correctAnswer: 1
-            },
-            {
-                question: "বাংলাদেশের স্বাধীনতা দিবস কবে?",
-                options: ["২৬ মার্চ", "১৬ ডিসেম্বর", "২১ ফেব্রুয়ারি", "১৫ আগস্ট"],
-                correctAnswer: 0
-            },
-            {
-                question: "বাংলাদেশের জাতীয় পাখি কোনটি?",
-                options: ["ময়না", "কাক", "দোয়েল", "চিল"],
-                correctAnswer: 2
-            },
-            {
-                question: "বাংলাদেশের রাজধানীর নাম কী?",
-                options: ["চট্টগ্রাম", "ঢাকা", "খুলনা", "রাজশাহী"],
-                correctAnswer: 1
-            },
-            {
-                question: "বাংলাদেশের জাতীয় ফল কোনটি?",
-                options: ["আম", "কাঁঠাল", "লিচু", "কলা"],
-                correctAnswer: 1
-            }
-        ];
+        let quizReward = 10; // Default reward, can be set from admin panel
 
         // Toast Notification
         function showToast(message) {
@@ -889,6 +904,12 @@
                 }
             }, 1000);
         }
+
+        // Quiz Complete Popup
+        const quizCompletePopup = document.getElementById('quiz-complete-popup');
+        document.getElementById('close-quiz-complete-btn').addEventListener('click', () => {
+            quizCompletePopup.classList.add('hidden');
+        });
 
         // Initialize Firebase
         function initializeFirebase() {
@@ -970,7 +991,8 @@
                 paymentNumber: '01xxxxxxxxx (বিকাশ)',
                 conversionRate: 100,
                 minWithdrawal: 50,
-                wrongAnswerRedirectUrl: 'https://example.com'
+                wrongAnswerRedirectUrl: 'https://example.com',
+                quizReward: 10
             };
             
             document.getElementById('admin-upi').innerText = appSettings.paymentNumber;
@@ -1025,6 +1047,7 @@
                 firebase.database().ref('settings').on('value', snapshot => {
                     appSettings = snapshot.val() || {};
                     document.getElementById('admin-upi').innerText = appSettings.paymentNumber || '01xxxxxxxxx (বিকাশ)';
+                    quizReward = appSettings.quizReward || 10;
                     
                     document.getElementById('withdraw-coins').addEventListener('input', e => {
                        const value = e.target.value / (appSettings.conversionRate || 100);
@@ -1141,7 +1164,7 @@
             localStorage.setItem('dailyLimits', JSON.stringify(limitsData));
         }
 
-        // Earning Methods - UPDATED TAP SYSTEM
+        // Earning Methods
         document.getElementById('tap-btn').addEventListener('click', () => {
             if (tapCount >= (tapSettings.dailyLimit || 5)) {
                 showToast("আজকের ট্যাপ লিমিট শেষ হয়েছে। আগামীকাল আবার চেষ্টা করুন।");
@@ -1298,10 +1321,26 @@
             });
         }
 
-        // Quiz Game
+        // Quiz Game - UPDATED SYSTEM
         function initializeQuiz() {
-            quizQuestions = [...quizData];
-            loadNextQuestion();
+            // Load quiz questions from Firebase or use default
+            if (isFirebaseInitialized) {
+                firebase.database().ref('quizQuestions').on('value', snapshot => {
+                    const questions = snapshot.val();
+                    if (questions && Object.keys(questions).length > 0) {
+                        // Convert Firebase object to array
+                        quizQuestions = Object.values(questions);
+                    } else {
+                        // Use default questions if no questions in Firebase
+                        quizQuestions = [...quizData];
+                    }
+                    loadNextQuestion();
+                });
+            } else {
+                // Use default questions in offline mode
+                quizQuestions = [...quizData];
+                loadNextQuestion();
+            }
         }
 
         function loadNextQuestion() {
@@ -1316,7 +1355,9 @@
             optionsElement.innerHTML = '';
             
             if (currentQuestionIndex >= quizQuestions.length) {
-                currentQuestionIndex = 0;
+                // All questions completed - show reward
+                showQuizComplete();
+                return;
             }
             
             const currentQuestion = quizQuestions[currentQuestionIndex];
@@ -1328,6 +1369,20 @@
                 optionElement.textContent = option;
                 optionElement.dataset.index = index;
                 optionsElement.appendChild(optionElement);
+            });
+        }
+
+        function showQuizComplete() {
+            // Award coins after completing all questions
+            updateCoins(quizReward).then(() => {
+                document.getElementById('quiz-complete-message').textContent = 
+                    `আপনি সমস্ত প্রশ্ন সফলভাবে সম্পন্ন করেছেন! ${quizReward} কয়েন পুরস্কার পেয়েছেন!`;
+                quizCompletePopup.classList.remove('hidden');
+                
+                // Reset quiz for next time
+                currentQuestionIndex = 0;
+            }).catch(err => {
+                showToast('পুরস্কার সংগ্রহ করা যায়নি। আবার চেষ্টা করুন।');
             });
         }
 
@@ -1353,13 +1408,8 @@
             
             if (selectedIndex === currentQuestion.correctAnswer) {
                 selectedOption.classList.add('correct');
-                resultElement.textContent = 'সঠিক উত্তর! আপনি 10 কয়েন জিতেছেন!';
+                resultElement.textContent = 'সঠিক উত্তর! পরবর্তী প্রশ্নে যান।';
                 resultElement.style.color = 'var(--secondary-color)';
-                
-                // Award coins
-                updateCoins(10).then(() => {
-                    showToast('আপনি 10 কয়েন জিতেছেন!');
-                });
                 
                 nextButton.classList.remove('hidden');
             } else {
@@ -1375,9 +1425,6 @@
 
         document.getElementById('next-question-btn').addEventListener('click', () => {
             currentQuestionIndex++;
-            if (currentQuestionIndex >= quizQuestions.length) {
-                currentQuestionIndex = 0;
-            }
             loadNextQuestion();
         });
         
@@ -1659,6 +1706,16 @@
 		'params' : {}
 	};
 </script>
-<script type="text/javascript" src="//www.highperformanceformat.com/1e07401901ac4fbae023c7bd388874ed/invoke.js"></script>
+<script type='text/javascript' src='//pl26987417.effectivegatecpm.com/43/5d/62/435d62c15267ad8ac72876a00ea204bb.js'></script>
+	<script type="text/javascript">
+	atOptions = {
+		'key' : 'da5cdd1d332d3032394c6dd6e6224ecc',
+		'format' : 'iframe',
+		'height' : 90,
+		'width' : 728,
+		'params' : {}
+	};
+</script>
+<script type="text/javascript" src="//www.highperformanceformat.com/da5cdd1d332d3032394c6dd6e6224ecc/invoke.js"></script>
 </body>
 </html>
