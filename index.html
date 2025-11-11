@@ -175,7 +175,7 @@
             font-weight: 600;
         }
 
-        input[type="text"], input[type="number"], input[type="file"] {
+        input[type="text"], input[type="number"], input[type="file"], select {
             width: 100%; 
             padding: 14px; 
             margin-bottom: 10px;
@@ -406,6 +406,38 @@
             font-weight: 600;
         }
 
+        #wrong-answer-popup {
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%;
+            background: rgba(0,0,0,0.5); 
+            z-index: 2000;
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            backdrop-filter: blur(8px); 
+            -webkit-backdrop-filter: blur(8px);
+        }
+        
+        #wrong-answer-box {
+            background: var(--card-bg-color); 
+            padding: 20px; 
+            border-radius: 20px; 
+            text-align: center;
+            border: 1.5px solid var(--border-color);
+            width: 90%;
+            max-width: 400px;
+        }
+        
+        #wrong-answer-timer {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--danger-color);
+            margin: 15px 0;
+        }
+
         #toast {
             position: fixed; 
             bottom: 100px; 
@@ -446,6 +478,53 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+
+        .limit-info {
+            font-size: 0.85em;
+            color: #6B7280;
+            margin-top: 5px;
+            text-align: center;
+        }
+
+        .app-install-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .app-install-item:last-child {
+            border-bottom: none;
+        }
+
+        .app-install-info {
+            flex: 1;
+        }
+
+        .app-install-name {
+            font-weight: 600;
+        }
+
+        .app-install-reward {
+            color: var(--secondary-color);
+            font-size: 0.9em;
+        }
+
+        .app-install-btn {
+            padding: 8px 15px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .app-install-btn:disabled {
+            background: #9CA3AF;
+            cursor: not-allowed;
         }
     </style>
 </head>
@@ -500,6 +579,27 @@
         </div>
     </div>
 
+    <div id="wrong-answer-popup" class="hidden">
+        <div id="wrong-answer-box">
+            <h4>ভুল উত্তর!</h4>
+            <p>আপনি ভুল উত্তর দিয়েছেন। পুনরায় চেষ্টা করার জন্য নিচের বিজ্ঞাপনটি দেখুন।</p>
+            <div id="wrong-answer-ad" style="display: flex; justify-content: center; align-items: center; min-height: 250px; margin-bottom: 15px;">
+                <script type="text/javascript">
+                    atOptions = {
+                        'key' : '1e07401901ac4fbae023c7bd388874ed',
+                        'format' : 'iframe',
+                        'height' : 250,
+                        'width' : 300,
+                        'params' : {}
+                    };
+                </script>
+                <script type="text/javascript" src="//www.highperformanceformat.com/1e07401901ac4fbae023c7bd388874ed/invoke.js"></script>
+            </div>
+            <div id="wrong-answer-timer">১৫</div>
+            <p>সেকেন্ড পর স্বয়ংক্রিয়ভাবে রিডাইরেক্ট হবে</p>
+        </div>
+    </div>
+
     <div class="container">
         <div id="home-page" class="page">
             <div class="header">
@@ -510,15 +610,17 @@
             </div>
 
             <div class="card">
-                <h3>ট্যাপ করে আয়</h3>
+                <h3>ট্যাপ করে আয়</h3>
                 <p>প্রতিটি ট্যাপে একটি কার্ড ওপেন হবে এবং অটোপ্লে হবে!</p>
-                <button id="tap-btn" class="btn btn-primary">ট্যাপ করুন (<span id="tap-count">0</span>/5)</button>
+                <button id="tap-btn" class="btn btn-primary">ট্যাপ করুন (<span id="tap-count">0</span>/<span id="tap-limit">5</span>)</button>
+                <div class="limit-info">আজকের লিমিট: <span id="tap-limit-info">5</span> ট্যাপ</div>
             </div>
             
             <div class="card">
-                <h3>ভিডিও দেখে আয়</h3>
-                <p>একটি ছোট বিজ্ঞাপন দেখে কয়েন জিতুন।</p>
-                <button id="watch-ad-btn" class="btn btn-secondary">বিজ্ঞাপন দেখুন</button>
+                <h3>ভিডিও দেখে আয়</h3>
+                <p>একটি ছোট বিজ্ঞাপন দেখে কয়েন জিতুন।</p>
+                <button id="watch-ad-btn" class="btn btn-secondary">বিজ্ঞাপন দেখুন (<span id="ad-count">0</span>/<span id="ad-limit">5</span>)</button>
+                <div class="limit-info">আজকের লিমিট: <span id="ad-limit-info">5</span> বিজ্ঞাপন</div>
             </div>
 
             <div class="card">
@@ -527,7 +629,8 @@
                     <div class="pointer"></div>
                     <div id="wheel"></div>
                 </div>
-                <button id="spin-btn" class="btn btn-info">এখনই স্পিন করুন!</button>
+                <button id="spin-btn" class="btn btn-info">এখনই স্পিন করুন! (<span id="spin-count">0</span>/<span id="spin-limit">3</span>)</button>
+                <div class="limit-info">আজকের লিমিট: <span id="spin-limit-info">3</span> স্পিন</div>
             </div>
         </div>
 
@@ -546,10 +649,15 @@
 
         <div id="wallet-page" class="page hidden">
             <div class="card">
-                <h3>কয়েন উত্তোলন</h3>
-                <input type="number" id="withdraw-coins" placeholder="উত্তোলনের জন্য কয়েন লিখুন">
+                <h3>কয়েন উত্তোলন</h3>
+                <input type="number" id="withdraw-coins" placeholder="উত্তোলনের জন্য কয়েন লিখুন">
+                <select id="withdraw-method">
+                    <option value="">পদ্ধতি নির্বাচন করুন</option>
+                    <option value="bkash">বিকাশ</option>
+                    <option value="nagad">নগদ</option>
+                </select>
                 <p>মূল্য: ৳<span id="withdraw-value">0.00</span></p>
-                <p class="min-withdrawal-note" style="color: var(--danger-color); font-size: 0.9em;">সর্বনিম্ন উত্তোলন: ৳50</p>
+                <p class="min-withdrawal-note" style="color: var(--danger-color); font-size: 0.9em;">সর্বনিম্ন উত্তোলন: ৳১০০</p>
                 <button id="withdraw-btn" class="btn btn-primary">উত্তোলনের অনুরোধ পাঠান</button>
             </div>
             <div class="card">
@@ -557,8 +665,8 @@
                 <p>এই নম্বরে টাকা পাঠান: <b id="admin-upi">01xxxxxxxxx (বিকাশ/নগদ)</b></p>
                 <p>টাকা পাঠানোর পর, পেমেন্টের স্ক্রিনশট আপলোড করুন।</p>
                 <input type="file" id="payment-screenshot" accept="image/*">
-                <input type="number" id="deposit-amount" placeholder="কত টাকা জমা দিয়েছেন (৳)">
-                <button id="deposit-btn" class="btn btn-secondary">রিভিউয়ের জন্য জমা দিন</button>
+                <input type="number" id="deposit-amount" placeholder="কত টাকা জমা দিয়েছেন (৳)">
+                <button id="deposit-btn" class="btn btn-secondary">রিভিউয়ের জন্য জমা দিন</button>
             </div>
         </div>
         
@@ -571,7 +679,7 @@
                 </div>
             </div>
             <div class="card">
-                <h3>ফলো করে আয়</h3>
+                <h3>ফলো করে আয়</h3>
                 <div id="social-tasks-list" class="loading">
                     <div class="spinner"></div>
                     <p>লোড হচ্ছে...</p>
@@ -596,10 +704,17 @@
                 <ul id="deposit-history"></ul>
             </div>
             <div class="card">
-                <h3>রেফার করে আয়</h3>
+                <h3>রেফার করে আয়</h3>
                 <p>আপনার রেফারেল কোড:</p>
                 <b id="referral-code" style="font-size: 1.2em; color: var(--secondary-color);"></b>
-                <button id="share-whatsapp-btn" class="btn btn-info">WhatsApp-এ শেয়ার করুন</button>
+                <button id="share-whatsapp-btn" class="btn btn-info">WhatsApp-এ শেয়ার করুন</button>
+            </div>
+            <div class="card">
+                <h3>অ্যাপস ইন্সটল করুন</h3>
+                <div id="app-install-list" class="loading">
+                    <div class="spinner"></div>
+                    <p>লোড হচ্ছে...</p>
+                </div>
             </div>
         </div>
     </div>
@@ -628,7 +743,7 @@
                 <path d="M3 5v14a2 2 0 0 0 2 2h16v-5"></path>
                 <path d="M18 12a2 2 0 0 0 0 4h4v-4Z"></path>
             </svg>
-            ওয়ালেট
+            ওয়ালেট
         </button>
         <button data-page="promo-page">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -651,20 +766,22 @@
     <script>
         // Firebase Configuration
         const firebaseConfig = {
-  apiKey: "AIzaSyB6hl7dLmvDiXowSVt_O7E5cw2StgbfTwI",
-  authDomain: "taka-eran-d1890.firebaseapp.com",
-  databaseURL: "https://taka-eran-d1890-default-rtdb.firebaseio.com",
-  projectId: "taka-eran-d1890",
-  storageBucket: "taka-eran-d1890.firebasestorage.app",
-  messagingSenderId: "551623752909",
-  appId: "1:551623752909:web:14de745a292112f2d83d84",
-  measurementId: "G-RNNVS8M247"
-};
+            apiKey: "AIzaSyB6hl7dLmvDiXowSVt_O7E5cw2StgbfTwI",
+            authDomain: "taka-eran-d1890.firebaseapp.com",
+            databaseURL: "https://taka-eran-d1890-default-rtdb.firebaseio.com",
+            projectId: "taka-eran-d1890",
+            storageBucket: "taka-eran-d1890.firebasestorage.app",
+            messagingSenderId: "551623752909",
+            appId: "1:551623752909:web:14de745a292112f2d83d84",
+            measurementId: "G-RNNVS8M247"
+        };
         
         // App State
         let userData = {};
         let userId = '';
         let tapCount = 0;
+        let adCount = 0;
+        let spinCount = 0;
         let appSettings = {};
         let tapSettings = {};
         let adSettings = {};
@@ -735,6 +852,34 @@
             tapCardPopup.classList.add('hidden');
         });
 
+        // Wrong Answer Popup Logic
+        const wrongAnswerPopup = document.getElementById('wrong-answer-popup');
+        let wrongAnswerTimer = null;
+        
+        function showWrongAnswerPopup() {
+            wrongAnswerPopup.classList.remove('hidden');
+            
+            // Start 15 second timer
+            let seconds = 15;
+            const timerElement = document.getElementById('wrong-answer-timer');
+            
+            wrongAnswerTimer = setInterval(() => {
+                seconds--;
+                timerElement.textContent = seconds;
+                
+                if (seconds <= 0) {
+                    clearInterval(wrongAnswerTimer);
+                    // Redirect to admin-set link
+                    if (appSettings.wrongAnswerRedirectUrl) {
+                        window.open(appSettings.wrongAnswerRedirectUrl, '_blank');
+                    }
+                    wrongAnswerPopup.classList.add('hidden');
+                    // Allow user to play again
+                    loadNextQuestion();
+                }
+            }, 1000);
+        }
+
         // Initialize Firebase
         function initializeFirebase() {
             try {
@@ -780,6 +925,8 @@
             listenToUserData();
             listenToAppSettings();
             initializeQuiz();
+            loadAppInstallList();
+            checkDailyLimits();
         }
 
         // Load secondary features
@@ -812,10 +959,29 @@
             appSettings = {
                 paymentNumber: '01xxxxxxxxx (বিকাশ)',
                 conversionRate: 100,
-                minWithdrawal: 50
+                minWithdrawal: 50,
+                wrongAnswerRedirectUrl: 'https://example.com'
             };
             
             document.getElementById('admin-upi').innerText = appSettings.paymentNumber;
+            
+            // Set default limits
+            tapSettings = {
+                dailyLimit: 5,
+                coinsPerTap: 1
+            };
+            
+            adSettings = {
+                dailyLimit: 5,
+                adReward: 5
+            };
+            
+            spinSettings = {
+                dailyLimit: 3,
+                spinMaxReward: 10
+            };
+            
+            updateLimitDisplay();
         }
 
         // Firebase Listeners
@@ -864,6 +1030,7 @@
             try {
                 firebase.database().ref('tapSettings').on('value', snapshot => {
                     tapSettings = snapshot.val() || {};
+                    updateLimitDisplay();
                 });
             } catch (error) {
                 console.error("Error listening to tap settings:", error);
@@ -876,6 +1043,7 @@
             try {
                 firebase.database().ref('adSettings').on('value', snapshot => {
                     adSettings = snapshot.val() || {};
+                    updateLimitDisplay();
                 });
             } catch (error) {
                 console.error("Error listening to ad settings:", error);
@@ -888,6 +1056,7 @@
             try {
                 firebase.database().ref('spinSettings').on('value', snapshot => {
                     spinSettings = snapshot.val() || {};
+                    updateLimitDisplay();
                 });
             } catch (error) {
                 console.error("Error listening to spin settings:", error);
@@ -907,44 +1076,117 @@
             return userCoinsRef.transaction(currentCoins => (currentCoins || 0) + amount);
         }
 
+        // Daily Limits Management
+        function checkDailyLimits() {
+            const today = new Date().toDateString();
+            const limitsData = JSON.parse(localStorage.getItem('dailyLimits') || '{}');
+            
+            if (limitsData.date !== today) {
+                // Reset daily counts
+                tapCount = 0;
+                adCount = 0;
+                spinCount = 0;
+                limitsData.date = today;
+                limitsData.tapCount = 0;
+                limitsData.adCount = 0;
+                limitsData.spinCount = 0;
+                localStorage.setItem('dailyLimits', JSON.stringify(limitsData));
+            } else {
+                tapCount = limitsData.tapCount || 0;
+                adCount = limitsData.adCount || 0;
+                spinCount = limitsData.spinCount || 0;
+            }
+            
+            updateLimitDisplay();
+        }
+
+        function updateLimitDisplay() {
+            document.getElementById('tap-count').innerText = tapCount;
+            document.getElementById('tap-limit').innerText = tapSettings.dailyLimit || 5;
+            document.getElementById('tap-limit-info').innerText = tapSettings.dailyLimit || 5;
+            
+            document.getElementById('ad-count').innerText = adCount;
+            document.getElementById('ad-limit').innerText = adSettings.dailyLimit || 5;
+            document.getElementById('ad-limit-info').innerText = adSettings.dailyLimit || 5;
+            
+            document.getElementById('spin-count').innerText = spinCount;
+            document.getElementById('spin-limit').innerText = spinSettings.dailyLimit || 3;
+            document.getElementById('spin-limit-info').innerText = spinSettings.dailyLimit || 3;
+            
+            // Disable buttons if limits reached
+            document.getElementById('tap-btn').disabled = tapCount >= (tapSettings.dailyLimit || 5);
+            document.getElementById('watch-ad-btn').disabled = adCount >= (adSettings.dailyLimit || 5);
+            document.getElementById('spin-btn').disabled = spinCount >= (spinSettings.dailyLimit || 3);
+        }
+
+        function saveDailyCounts() {
+            const limitsData = {
+                date: new Date().toDateString(),
+                tapCount: tapCount,
+                adCount: adCount,
+                spinCount: spinCount
+            };
+            localStorage.setItem('dailyLimits', JSON.stringify(limitsData));
+        }
+
         // Earning Methods
         document.getElementById('tap-btn').addEventListener('click', () => {
+            if (tapCount >= (tapSettings.dailyLimit || 5)) {
+                showToast("আজকের ট্যাপ লিমিট শেষ হয়েছে। আগামীকাল আবার চেষ্টা করুন।");
+                return;
+            }
+            
             tapCount++;
             document.getElementById('tap-count').innerText = tapCount;
+            saveDailyCounts();
             
             // Show tap card popup
             tapCardPopup.classList.remove('hidden');
             
-            if (tapCount >= 5) {
-                const coinsPerTap = tapSettings.coinsPerTap || 1;
-                updateCoins(coinsPerTap);
-                tapCount = 0;
-                document.getElementById('tap-count').innerText = tapCount;
-                
-                // Open tap link if available
-                if (tapSettings.tapLink) {
-                    window.open(tapSettings.tapLink, '_blank');
-                }
+            const coinsPerTap = tapSettings.coinsPerTap || 1;
+            updateCoins(coinsPerTap);
+            showToast(`আপনি ${coinsPerTap} কয়েন জিতেছেন!`);
+            
+            // Check if limit reached
+            if (tapCount >= (tapSettings.dailyLimit || 5)) {
+                document.getElementById('tap-btn').disabled = true;
+                showToast("আজকের ট্যাপ লিমিট শেষ হয়েছে। আগামীকাল আবার চেষ্টা করুন।");
             }
         });
 
         document.getElementById('watch-ad-btn').addEventListener('click', () => {
+            if (adCount >= (adSettings.dailyLimit || 5)) {
+                showToast("আজকের বিজ্ঞাপন লিমিট শেষ হয়েছে। আগামীকাল আবার চেষ্টা করুন।");
+                return;
+            }
+            
             showAd(() => {
+                adCount++;
+                document.getElementById('ad-count').innerText = adCount;
+                saveDailyCounts();
+                
                 const reward = adSettings.adReward || 5;
                 updateCoins(reward).then(() => {
-                    showToast(`আপনি ${reward} কয়েন জিতেছেন!`);
+                    showToast(`আপনি ${reward} কয়েন জিতেছেন!`);
                     
-                    // Open ad link if available
-                    if (adSettings.adLink) {
-                        window.open(adSettings.adLink, '_blank');
+                    // Check if limit reached
+                    if (adCount >= (adSettings.dailyLimit || 5)) {
+                        document.getElementById('watch-ad-btn').disabled = true;
+                        showToast("আজকের বিজ্ঞাপন লিমিট শেষ হয়েছে। আগামীকাল আবার চেষ্টা করুন।");
                     }
-                }).catch(err => showToast('কয়েন যোগ করা যায়নি। আবার চেষ্টা করুন।'));
+                }).catch(err => showToast('কয়েন যোগ করা যায়নি। আবার চেষ্টা করুন।'));
             });
         });
 
         document.getElementById('spin-btn').addEventListener('click', (e) => {
             const button = e.target;
             if (button.disabled) return;
+            
+            if (spinCount >= (spinSettings.dailyLimit || 3)) {
+                showToast("আজকের স্পিন লিমিট শেষ হয়েছে। আগামীকাল আবার চেষ্টা করুন।");
+                return;
+            }
+
             button.disabled = true;
 
             const wheel = document.getElementById('wheel');
@@ -952,23 +1194,97 @@
             wheel.style.transform = `rotate(${degrees}deg)`;
             
             setTimeout(() => {
-                const maxReward = appSettings.spinMaxReward || 10;
+                spinCount++;
+                document.getElementById('spin-count').innerText = spinCount;
+                saveDailyCounts();
+                
+                const maxReward = spinSettings.spinMaxReward || 10;
                 const randomCoins = Math.ceil(Math.random() * maxReward);
                 updateCoins(randomCoins).then(() => {
-                    showToast(`আপনি স্পিন করে ${randomCoins} কয়েন জিতেছেন!`);
+                    showToast(`আপনি স্পিন করে ${randomCoins} কয়েন জিতেছেন!`);
                     
-                    // Open spin link if available
-                    if (spinSettings.spinLink) {
-                        window.open(spinSettings.spinLink, '_blank');
+                    // Check if limit reached
+                    if (spinCount >= (spinSettings.dailyLimit || 3)) {
+                        button.disabled = true;
+                        showToast("আজকের স্পিন লিমিট শেষ হয়েছে। আগামীকাল আবার চেষ্টা করুন।");
+                    } else {
+                        button.disabled = false;
                     }
-                    
-                    button.disabled = false;
                 }).catch(err => {
-                    showToast('পুরস্কার সংগ্রহ করা যায়নি। আবার চেষ্টা করুন।');
+                    showToast('পুরস্কার সংগ্রহ করা যায়নি। আবার চেষ্টা করুন।');
                     button.disabled = false;
                 });
             }, 4500);
         });
+
+        // App Install Feature
+        function loadAppInstallList() {
+            if (!isFirebaseInitialized) {
+                document.getElementById('app-install-list').innerHTML = '<p>ইন্টারনেট সংযোগ নেই। পরে আবার চেষ্টা করুন।</p>';
+                return;
+            }
+            
+            firebase.database().ref('appInstallTasks').on('value', s => {
+                const list = document.getElementById('app-install-list');
+                list.innerHTML = '';
+                
+                if (!s.exists()) {
+                    list.innerHTML = '<p>কোন অ্যাপস ইন্সটল টাস্ক নেই</p>';
+                    return;
+                }
+                
+                s.forEach(c => {
+                    const app = c.val();
+                    const appId = c.key;
+                    const isInstalled = localStorage.getItem(`app_installed_${appId}`);
+                    
+                    const appItem = document.createElement('div');
+                    appItem.className = 'app-install-item';
+                    appItem.innerHTML = `
+                        <div class="app-install-info">
+                            <div class="app-install-name">${app.name}</div>
+                            <div class="app-install-reward">পুরস্কার: ${app.reward} কয়েন</div>
+                        </div>
+                        <button class="app-install-btn" data-app-id="${appId}" data-reward="${app.reward}" data-url="${app.url}" ${isInstalled ? 'disabled' : ''}>
+                            ${isInstalled ? 'ইন্সটলড' : 'ইন্সটল করুন'}
+                        </button>
+                    `;
+                    
+                    list.appendChild(appItem);
+                });
+                
+                // Add event listeners for install buttons
+                document.querySelectorAll('.app-install-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const appId = this.dataset.appId;
+                        const reward = parseInt(this.dataset.reward);
+                        const url = this.dataset.url;
+                        
+                        installApp(appId, reward, url, this);
+                    });
+                });
+            });
+        }
+
+        function installApp(appId, reward, url, button) {
+            // Mark app as installed
+            localStorage.setItem(`app_installed_${appId}`, 'true');
+            
+            // Award coins
+            updateCoins(reward).then(() => {
+                showToast(`অ্যাপ ইন্সটল করার জন্য ${reward} কয়েন পুরস্কার পেয়েছেন!`);
+                
+                // Update button state
+                button.disabled = true;
+                button.textContent = 'ইন্সটলড';
+                
+                // Open app store link
+                window.open(url, '_blank');
+            }).catch(err => {
+                showToast('পুরস্কার সংগ্রহ করা যায়নি। আবার চেষ্টা করুন।');
+                localStorage.removeItem(`app_installed_${appId}`);
+            });
+        }
 
         // Quiz Game
         function initializeQuiz() {
@@ -1025,21 +1341,24 @@
             
             if (selectedIndex === currentQuestion.correctAnswer) {
                 selectedOption.classList.add('correct');
-                resultElement.textContent = 'সঠিক উত্তর! আপনি 10 কয়েন জিতেছেন!';
+                resultElement.textContent = 'সঠিক উত্তর! আপনি 10 কয়েন জিতেছেন!';
                 resultElement.style.color = 'var(--secondary-color)';
                 
                 // Award coins
                 updateCoins(10).then(() => {
-                    showToast('আপনি 10 কয়েন জিতেছেন!');
+                    showToast('আপনি 10 কয়েন জিতেছেন!');
                 });
+                
+                nextButton.classList.remove('hidden');
             } else {
                 selectedOption.classList.add('wrong');
                 options[currentQuestion.correctAnswer].classList.add('correct');
-                resultElement.textContent = 'ভুল উত্তর! সঠিক উত্তরটি হাইলাইট করা হয়েছে।';
+                resultElement.textContent = 'ভুল উত্তর! সঠিক উত্তরটি হাইলাইট করা হয়েছে।';
                 resultElement.style.color = 'var(--danger-color)';
+                
+                // Show wrong answer popup with banner ad
+                showWrongAnswerPopup();
             }
-            
-            nextButton.classList.remove('hidden');
         }
 
         document.getElementById('next-question-btn').addEventListener('click', () => {
@@ -1053,11 +1372,18 @@
         // Financial Transactions
         document.getElementById('withdraw-btn').addEventListener('click', () => {
             const withdrawInput = document.getElementById('withdraw-coins');
+            const withdrawMethod = document.getElementById('withdraw-method');
             const coinsToWithdraw = parseInt(withdrawInput.value);
+            const method = withdrawMethod.value;
             const minWithdrawal = (appSettings.minWithdrawal || 50) * (appSettings.conversionRate || 100);
             
+            if (!method) {
+                showToast("উত্তোলনের পদ্ধতি নির্বাচন করুন।");
+                return;
+            }
+            
             if (coinsToWithdraw < minWithdrawal) {
-                showToast(`সর্বনিম্ন উত্তোলন: ${appSettings.minWithdrawal || 50} টাকা (${minWithdrawal} কয়েন)`);
+                showToast(`সর্বনিম্ন উত্তোলন: ${appSettings.minWithdrawal || 50} টাকা (${minWithdrawal} কয়েন)`);
                 return;
             }
             
@@ -1068,24 +1394,27 @@
                             userId, 
                             name: userData.name, 
                             upi: userData.upi, 
+                            method: method,
                             coins: coinsToWithdraw,
                             amount: coinsToWithdraw / (appSettings.conversionRate || 100),
                             status: 'pending', 
                             timestamp: new Date().toISOString()
                         };
                         firebase.database().ref('withdrawals').push(withdrawalRequest).then(() => {
-                            showToast('আপনার উত্তোলনের অনুরোধ জমা হয়েছে!');
+                            showToast('আপনার উত্তোলনের অনুরোধ জমা হয়েছে!');
                             withdrawInput.value = '';
+                            withdrawMethod.value = '';
                             document.getElementById('withdraw-value').innerText = '0.00';
                         });
                     } else {
-                        showToast('অফলাইন মোডে উত্তোলন অনুরোধ জমা হবে যখন ইন্টারনেট সংযোগ পাওয়া যাবে।');
+                        showToast('অফলাইন মোডে উত্তোলন অনুরোধ জমা হবে যখন ইন্টারনেট সংযোগ পাওয়া যাবে।');
                         withdrawInput.value = '';
+                        withdrawMethod.value = '';
                         document.getElementById('withdraw-value').innerText = '0.00';
                     }
-                }).catch(err => showToast('উত্তোলন ব্যর্থ হয়েছে। আপনার কয়েন ফেরত দেওয়া হয়েছে।'));
+                }).catch(err => showToast('উত্তোলন ব্যর্থ হয়েছে। আপনার কয়েন ফেরত দেওয়া হয়েছে।'));
             } else { 
-                showToast('আপনার কয়েনের পরিমাণ সঠিক নয়।'); 
+                showToast('আপনার কয়েনের পরিমাণ সঠিক নয়।'); 
             }
         });
 
@@ -1110,12 +1439,12 @@
                     timestamp: new Date().toISOString()
                 };
                 firebase.database().ref('deposits').push(depositRequest).then(() => {
-                    showToast('আপনার জমার অনুরোধ রিভিউয়ের জন্য জমা হয়েছে।');
+                    showToast('আপনার জমার অনুরোধ রিভিউয়ের জন্য জমা হয়েছে।');
                     amountInput.value = '';
                     fileInput.value = '';
-                }).catch(err => showToast('জমার অনুরোধ ব্যর্থ হয়েছে।'));
+                }).catch(err => showToast('জমার অনুরোধ ব্যর্থ হয়েছে।'));
             } else {
-                showToast('অফলাইন মোডে জমার অনুরোধ জমা হবে যখন ইন্টারনেট সংযোগ পাওয়া যাবে।');
+                showToast('অফলাইন মোডে জমার অনুরোধ জমা হবে যখন ইন্টারনেট সংযোগ পাওয়া যাবে।');
                 amountInput.value = '';
                 fileInput.value = '';
             }
@@ -1129,7 +1458,7 @@
                 list.innerHTML = '';
                 s.forEach(c => {
                     const d = c.val();
-                    list.innerHTML = `<li>${d.coins} কয়েন (৳${d.amount.toFixed(2)}) - ${d.status}</li>` + list.innerHTML;
+                    list.innerHTML = `<li>${d.coins} কয়েন (৳${d.amount.toFixed(2)}) - ${d.status} - ${d.method}</li>` + list.innerHTML;
                 });
             });
             
@@ -1150,14 +1479,14 @@
             if (newName && newUpi) {
                 if (isFirebaseInitialized) {
                     firebase.database().ref('users/' + userId).update({ name: newName, upi: newUpi })
-                    .then(() => showToast('প্রোফাইল আপডেট হয়েছে!'))
-                    .catch(() => showToast('প্রোফাইল আপডেট করা যায়নি।'));
+                    .then(() => showToast('প্রোফাইল আপডেট হয়েছে!'))
+                    .catch(() => showToast('প্রোফাইল আপডেট করা যায়নি।'));
                 } else {
                     // Update offline
                     userData.name = newName;
                     userData.upi = newUpi;
                     localStorage.setItem('userData', JSON.stringify(userData));
-                    showToast('প্রোফাইল আপডেট হয়েছে! (অফলাইন)');
+                    showToast('প্রোফাইল আপডেট হয়েছে! (অফলাইন)');
                 }
             }
         });
@@ -1217,7 +1546,7 @@
                 window.open(url, '_blank');
             }).catch(err => {
                 localStorage.removeItem('task_' + taskId);
-                showToast('পুরস্কার সংগ্রহ করা যায়নি। আবার চেষ্টা করুন।');
+                showToast('পুরস্কার সংগ্রহ করা যায়নি। আবার চেষ্টা করুন।');
             });
         }
 
@@ -1240,12 +1569,20 @@
             }
         });
 
-        // Onboarding
+        // Onboarding with unique name and phone validation
         document.getElementById('saveUser').addEventListener('click', () => {
             const name = document.getElementById('userName').value.trim();
             const upi = document.getElementById('userUpi').value.trim();
 
             if (name && upi) {
+                // Check if user already exists with this name or phone
+                const existingUsers = JSON.parse(localStorage.getItem('appUsers') || '{}');
+                
+                if (existingUsers[name] || existingUsers[upi]) {
+                    showToast('এই নাম বা নাম্বার দিয়ে ইতিমধ্যে অ্যাকাউন্ট তৈরি হয়েছে।');
+                    return;
+                }
+                
                 userId = 'user_' + Date.now();
                 localStorage.setItem('earningAppUserId', userId);
                 
@@ -1260,13 +1597,18 @@
                 // Save to localStorage immediately
                 localStorage.setItem('userData', JSON.stringify(userData));
                 
+                // Update user index
+                existingUsers[name] = userId;
+                existingUsers[upi] = userId;
+                localStorage.setItem('appUsers', JSON.stringify(existingUsers));
+                
                 if (isFirebaseInitialized) {
                     firebase.database().ref('users/' + userId).set(userData).then(() => {
                         document.getElementById('onboarding-screen').classList.add('hidden');
                         initializeApp();
                     }).catch(error => {
                         console.error("Firebase write failed: ", error);
-                        showToast('তথ্য সেভ করা যায়নি। অফলাইন মোডে চলছে।');
+                        showToast('তথ্য সেভ করা যায়নি। অফলাইন মোডে চলছে।');
                         document.getElementById('onboarding-screen').classList.add('hidden');
                         initializeApp();
                     });
@@ -1282,7 +1624,7 @@
         // Global Error Handling
         window.addEventListener('error', function(e) {
             console.error('Global error:', e.error);
-            showToast('অ্যাপটিতে সাময়িক সমস্যা হচ্ছে। পুনরায় চেষ্টা করুন।');
+            showToast('অ্যাপটিতে সাময়িক সমস্যা হচ্ছে। পুনরায় চেষ্টা করুন।');
         });
 
         window.addEventListener('unhandledrejection', function(e) {
@@ -1296,6 +1638,15 @@
             setTimeout(initializeApp, 100);
         });
     </script>
-    <script type='text/javascript' src='//pl26987417.effectivegatecpm.com/43/5d/62/435d62c15267ad8ac72876a00ea204bb.js'></script>
+    <script type="text/javascript">
+	atOptions = {
+		'key' : '1e07401901ac4fbae023c7bd388874ed',
+		'format' : 'iframe',
+		'height' : 250,
+		'width' : 300,
+		'params' : {}
+	};
+</script>
+<script type="text/javascript" src="//www.highperformanceformat.com/1e07401901ac4fbae023c7bd388874ed/invoke.js"></script>
 </body>
 </html>
