@@ -657,7 +657,7 @@
                     <option value="nagad">নগদ</option>
                 </select>
                 <p>মূল্য: ৳<span id="withdraw-value">0.00</span></p>
-                <p class="min-withdrawal-note" style="color: var(--danger-color); font-size: 0.9em;">সর্বনিম্ন উত্তোলন: ৳১০০</p>
+                <p class="min-withdrawal-note" style="color: var(--danger-color); font-size: 0.9em;">সর্বনিম্ন উত্তোলন: ৳50</p>
                 <button id="withdraw-btn" class="btn btn-primary">উত্তোলনের অনুরোধ পাঠান</button>
             </div>
             <div class="card">
@@ -843,6 +843,11 @@
             if (adRewardCallback) {
                 adRewardCallback();
                 adRewardCallback = null;
+                
+                // When ad is closed, redirect to the ad link
+                if (adSettings.adLink) {
+                    window.open(adSettings.adLink, '_blank');
+                }
             }
         });
 
@@ -850,6 +855,11 @@
         const tapCardPopup = document.getElementById('tap-card-popup');
         document.getElementById('close-tap-card-btn').addEventListener('click', () => {
             tapCardPopup.classList.add('hidden');
+            
+            // After closing tap card, check if it's time to redirect to link
+            if (tapCount % 5 === 0 && tapSettings.tapLink) {
+                window.open(tapSettings.tapLink, '_blank');
+            }
         });
 
         // Wrong Answer Popup Logic
@@ -968,12 +978,14 @@
             // Set default limits
             tapSettings = {
                 dailyLimit: 5,
-                coinsPerTap: 1
+                coinsPerTap: 1,
+                tapLink: 'https://example.com'
             };
             
             adSettings = {
                 dailyLimit: 5,
-                adReward: 5
+                adReward: 5,
+                adLink: 'https://example.com'
             };
             
             spinSettings = {
@@ -1129,7 +1141,7 @@
             localStorage.setItem('dailyLimits', JSON.stringify(limitsData));
         }
 
-        // Earning Methods
+        // Earning Methods - UPDATED TAP SYSTEM
         document.getElementById('tap-btn').addEventListener('click', () => {
             if (tapCount >= (tapSettings.dailyLimit || 5)) {
                 showToast("আজকের ট্যাপ লিমিট শেষ হয়েছে। আগামীকাল আবার চেষ্টা করুন।");
@@ -1140,7 +1152,7 @@
             document.getElementById('tap-count').innerText = tapCount;
             saveDailyCounts();
             
-            // Show tap card popup
+            // Show tap card popup with banner ad
             tapCardPopup.classList.remove('hidden');
             
             const coinsPerTap = tapSettings.coinsPerTap || 1;
@@ -1647,6 +1659,6 @@
 		'params' : {}
 	};
 </script>
-	<script type='text/javascript' src='//pl26987417.effectivegatecpm.com/43/5d/62/435d62c15267ad8ac72876a00ea204bb.js'></script>
+<script type="text/javascript" src="//www.highperformanceformat.com/1e07401901ac4fbae023c7bd388874ed/invoke.js"></script>
 </body>
 </html>
