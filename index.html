@@ -152,7 +152,7 @@
             font-weight: 600; 
         }
         
-        #onboarding-box input {
+        #onboarding-box input, #onboarding-box select {
             width: 100%; 
             padding: 14px; 
             margin-bottom: 15px;
@@ -175,7 +175,7 @@
             font-weight: 600;
         }
 
-        input[type="text"], input[type="number"], input[type="file"], select {
+        input[type="text"], input[type="number"], input[type="email"], input[type="password"], input[type="file"], select {
             width: 100%; 
             padding: 14px; 
             margin-bottom: 10px;
@@ -561,6 +561,171 @@
             background: #9CA3AF;
             cursor: not-allowed;
         }
+
+        /* নতুন স্টাইল যোগ করা হয়েছে */
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .auth-tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .auth-tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .auth-form {
+            display: none;
+        }
+        
+        .auth-form.active {
+            display: block;
+        }
+        
+        .logout-btn {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-top: 15px;
+        }
+        
+        .forgot-password {
+            text-align: center;
+            margin-top: 15px;
+            color: var(--primary-color);
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        
+        .age-gender-container {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .age-gender-container input,
+        .age-gender-container select {
+            flex: 1;
+        }
+        
+        #recovery-popup {
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%;
+            background: rgba(0,0,0,0.5); 
+            z-index: 2000;
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            backdrop-filter: blur(8px); 
+            -webkit-backdrop-filter: blur(8px);
+        }
+        
+        #recovery-box {
+            background: var(--card-bg-color); 
+            padding: 20px; 
+            border-radius: 20px; 
+            text-align: center;
+            border: 1.5px solid var(--border-color);
+            width: 90%;
+            max-width: 400px;
+        }
+        
+        #close-recovery-btn {
+            margin-top: 15px; 
+            padding: 10px 20px; 
+            background: var(--danger-color);
+            color: var(--light-text-color); 
+            border: none; 
+            border-radius: 10px; 
+            font-weight: 600;
+        }
+        
+        .recovery-step {
+            display: none;
+        }
+        
+        .recovery-step.active {
+            display: block;
+        }
+
+        #reset-timer {
+            background: rgba(59, 130, 246, 0.1);
+            padding: 8px 15px;
+            border-radius: 20px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            font-weight: 500;
+            text-align: center;
+            font-size: 0.9em;
+            color: #6B7280;
+        }
+
+        .user-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .stat-item {
+            background: rgba(255, 255, 255, 0.3);
+            padding: 10px;
+            border-radius: 12px;
+            flex: 1;
+            margin: 0 5px;
+        }
+        
+        .stat-number {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .stat-label {
+            font-size: 0.8em;
+            color: #6B7280;
+        }
+
+        .admin-stats {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .admin-stats h4 {
+            margin: 0 0 10px 0;
+            font-size: 1.1em;
+        }
+        
+        .admin-stats .number {
+            font-size: 2em;
+            font-weight: 700;
+        }
+
+        /* শুধুমাত্র এডমিন দেখতে পারবে */
+        .admin-only { 
+            display: none !important; 
+        }
     </style>
 </head>
 <body>
@@ -569,10 +734,74 @@
     <div id="onboarding-screen">
         <div id="onboarding-box">
             <h2>স্বাগতম!</h2>
-            <p>শুরু করার জন্য আপনার তথ্য দিন।</p>
-            <input type="text" id="userName" placeholder="আপনার নাম দিন" required>
-            <input type="text" id="userUpi" placeholder="আপনার বিকাশ/নগদ নম্বর দিন" required>
-            <button id="saveUser">শুরু করুন</button>
+            <p>শুরু করার জন্য লগইন বা সাইন আপ করুন।</p>
+            
+            <div class="auth-tabs">
+                <div class="auth-tab active" data-tab="login">লগইন</div>
+                <div class="auth-tab" data-tab="signup">সাইন আপ</div>
+            </div>
+            
+            <!-- লগইন ফর্ম -->
+            <div id="login-form" class="auth-form active">
+                <input type="text" id="loginIdentifier" placeholder="ইউজারনেম, ইমেইল বা ফোন নম্বর" required>
+                <input type="password" id="loginPassword" placeholder="আপনার পাসওয়ার্ড দিন" required>
+                <button id="login-btn">লগইন করুন</button>
+                <div class="forgot-password" id="forgot-password-link">পাসওয়ার্ড ভুলে গেছেন?</div>
+            </div>
+            
+            <!-- সাইন আপ ফর্ম -->
+            <div id="signup-form" class="auth-form">
+                <input type="text" id="userName" placeholder="আপনার নাম দিন" required>
+                <input type="text" id="userUsername" placeholder="ইউজারনেম তৈরি করুন" required>
+                <input type="email" id="userEmail" placeholder="আপনার ইমেইল দিন" required>
+                <input type="text" id="userPhone" placeholder="আপনার ফোন নম্বর দিন" required>
+                
+                <div class="age-gender-container">
+                    <input type="number" id="userAge" placeholder="বয়স" min="13" max="100" required>
+                    <select id="userGender" required>
+                        <option value="">লিঙ্গ নির্বাচন</option>
+                        <option value="male">পুরুষ</option>
+                        <option value="female">মহিলা</option>
+                        <option value="other">অন্যান্য</option>
+                    </select>
+                </div>
+                
+                <input type="password" id="userPassword" placeholder="পাসওয়ার্ড তৈরি করুন" required>
+                <input type="password" id="confirmPassword" placeholder="পাসওয়ার্ড নিশ্চিত করুন" required>
+                <input type="text" id="userUpi" placeholder="আপনার বিকাশ/নগদ নম্বর দিন" required>
+                <button id="signup-btn">সাইন আপ করুন</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- পাসওয়ার্ড রিকভারি পপআপ -->
+    <div id="recovery-popup" class="hidden">
+        <div id="recovery-box">
+            <h4>পাসওয়ার্ড রিকভারি</h4>
+            
+            <!-- ধাপ ১: ইউজার আইডেন্টিফায়ার -->
+            <div id="recovery-step-1" class="recovery-step active">
+                <p>আপনার ইউজারনেম, ইমেইল বা ফোন নম্বর দিন</p>
+                <input type="text" id="recovery-identifier" placeholder="ইউজারনেম, ইমেইল বা ফোন নম্বর">
+                <button id="recovery-next-1" class="btn btn-primary">পরবর্তী</button>
+            </div>
+            
+            <!-- ধাপ ২: নিরাপত্তা প্রশ্ন -->
+            <div id="recovery-step-2" class="recovery-step">
+                <p id="security-question-text">নিরাপত্তা প্রশ্ন লোড হচ্ছে...</p>
+                <input type="text" id="security-answer" placeholder="উত্তর দিন">
+                <button id="recovery-next-2" class="btn btn-primary">পরবর্তী</button>
+            </div>
+            
+            <!-- ধাপ ৩: নতুন পাসওয়ার্ড সেট করুন -->
+            <div id="recovery-step-3" class="recovery-step">
+                <p>আপনার নতুন পাসওয়ার্ড সেট করুন</p>
+                <input type="password" id="new-password" placeholder="নতুন পাসওয়ার্ড">
+                <input type="password" id="confirm-new-password" placeholder="পাসওয়ার্ড নিশ্চিত করুন">
+                <button id="recovery-submit" class="btn btn-primary">পাসওয়ার্ড পরিবর্তন করুন</button>
+            </div>
+            
+            <button id="close-recovery-btn">বন্ধ করুন</button>
         </div>
     </div>
 
@@ -645,10 +874,36 @@
 
     <div class="container">
         <div id="home-page" class="page">
+            <!-- রিসেট টাইমার -->
+            <div id="reset-timer">লিমিট রিসেট: ০০:০০:০০</div>
+
             <div class="header">
                 <p>আপনার ব্যালেন্স</p>
                 <div class="wallet-balance">
                     <span id="coin-balance">0</span> 🪙
+                </div>
+            </div>
+
+            <!-- এডমিন স্ট্যাটস (শুধুমাত্র এডমিন দেখতে পারবে) -->
+            <div class="admin-stats admin-only">
+                <h4>🟢 মোট রেজিস্টার্ড ইউজার</h4>
+                <div class="number" id="total-users-count">0</div>
+                <div style="font-size: 0.8em; opacity: 0.9;">এখনই অনলাইন: <span id="online-users-count">0</span> জন</div>
+            </div>
+
+            <!-- ইউজার স্ট্যাটস -->
+            <div class="user-stats">
+                <div class="stat-item">
+                    <div class="stat-number" id="today-earners">0</div>
+                    <div class="stat-label">আজকের আয়</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="total-withdraw">0</div>
+                    <div class="stat-label">উত্তোলন</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="app-downloads">0</div>
+                    <div class="stat-label">ডাউনলোড</div>
                 </div>
             </div>
 
@@ -738,6 +993,31 @@
                 <label>বিকাশ/নগদ নম্বর:</label>
                 <input type="text" id="profileUpi">
                 <button id="update-profile-btn" class="btn btn-primary">প্রোফাইল আপডেট করুন</button>
+                
+                <!-- এডমিন স্ট্যাটস (শুধুমাত্র এডমিন দেখতে পারবে) -->
+                <div class="admin-stats admin-only" style="margin-top: 15px;">
+                    <h4>📊 অ্যাপ স্ট্যাটিস্টিক্স</h4>
+                    <div class="number" id="profile-total-users">0</div>
+                    <div style="font-size: 0.8em; opacity: 0.9;">মোট রেজিস্টার্ড ইউজার</div>
+                </div>
+                
+                <!-- ব্যক্তিগত স্ট্যাটস -->
+                <div class="user-stats">
+                    <div class="stat-item">
+                        <div class="stat-number" id="user-rank">-</div>
+                        <div class="stat-label">আপনার র‍্যাংক</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="join-date">-</div>
+                        <div class="stat-label">যোগদান</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="user-earnings">0</div>
+                        <div class="stat-label">আপনার আয়</div>
+                    </div>
+                </div>
+                
+                <button class="logout-btn" id="logout-btn">লগ আউট</button>
             </div>
              <div class="card">
                 <h3>লেনদেনের ইতিহাস</h3>
@@ -832,7 +1112,11 @@
         let currentQuestionIndex = 0;
         let quizQuestions = [];
         let isFirebaseInitialized = false;
-        let quizReward = 10; // Default reward, can be set from admin panel
+        let quizReward = 10;
+        let recoveryUserData = null;
+        let recoveryStep = 1;
+        let totalUsersCount = 0;
+        let onlineUsersCount = 0;
 
         // Toast Notification
         function showToast(message) {
@@ -843,6 +1127,133 @@
                 toast.classList.remove('show'); 
             }, 3000);
         }
+
+        // Check if user is admin and show/hide admin elements
+        function checkAdminStatus() {
+            // Check if current user is admin (you need to implement your admin check logic)
+            const isAdmin = userData && userData.isAdmin === true;
+            
+            // Show/hide admin elements
+            document.querySelectorAll('.admin-only').forEach(element => {
+                if (isAdmin) {
+                    element.classList.remove('admin-only');
+                    element.style.display = 'block';
+                } else {
+                    element.classList.add('admin-only');
+                    element.style.display = 'none';
+                }
+            });
+        }
+
+        // Authentication Tabs
+        document.querySelectorAll('.auth-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const tabId = this.dataset.tab;
+                
+                // Update active tab
+                document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Show active form
+                document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+                document.getElementById(tabId + '-form').classList.add('active');
+            });
+        });
+
+        // Password Recovery Logic
+        const recoveryPopup = document.getElementById('recovery-popup');
+        document.getElementById('forgot-password-link').addEventListener('click', () => {
+            recoveryPopup.classList.remove('hidden');
+            recoveryStep = 1;
+            showRecoveryStep(1);
+        });
+
+        document.getElementById('close-recovery-btn').addEventListener('click', () => {
+            recoveryPopup.classList.add('hidden');
+        });
+
+        function showRecoveryStep(step) {
+            document.querySelectorAll('.recovery-step').forEach(s => s.classList.remove('active'));
+            document.getElementById('recovery-step-' + step).classList.add('active');
+        }
+
+        document.getElementById('recovery-next-1').addEventListener('click', () => {
+            const identifier = document.getElementById('recovery-identifier').value.trim();
+            if (!identifier) {
+                showToast('ইউজারনেম, ইমেইল বা ফোন নম্বর দিন');
+                return;
+            }
+
+            // Find user by identifier
+            const users = JSON.parse(localStorage.getItem('appUsersData') || '{}');
+            let foundUser = null;
+
+            for (const userId in users) {
+                const user = users[userId];
+                if (user.username === identifier || user.email === identifier || user.phone === identifier) {
+                    foundUser = user;
+                    foundUser.id = userId;
+                    break;
+                }
+            }
+
+            if (foundUser) {
+                recoveryUserData = foundUser;
+                document.getElementById('security-question-text').textContent = foundUser.securityQuestion || 'আপনার পছন্দের রং কি?';
+                recoveryStep = 2;
+                showRecoveryStep(2);
+            } else {
+                showToast('ব্যবহারকারী খুঁজে পাওয়া যায়নি');
+            }
+        });
+
+        document.getElementById('recovery-next-2').addEventListener('click', () => {
+            const answer = document.getElementById('security-answer').value.trim();
+            if (!answer) {
+                showToast('নিরাপত্তা প্রশ্নের উত্তর দিন');
+                return;
+            }
+
+            if (recoveryUserData && recoveryUserData.securityAnswer === answer) {
+                recoveryStep = 3;
+                showRecoveryStep(3);
+            } else {
+                showToast('ভুল উত্তর! আবার চেষ্টা করুন');
+            }
+        });
+
+        document.getElementById('recovery-submit').addEventListener('click', () => {
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-new-password').value;
+
+            if (!newPassword || !confirmPassword) {
+                showToast('নতুন পাসওয়ার্ড দিন');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showToast('পাসওয়ার্ড মিলছে না');
+                return;
+            }
+
+            if (recoveryUserData) {
+                // Update password
+                const users = JSON.parse(localStorage.getItem('appUsersData') || '{}');
+                if (users[recoveryUserData.id]) {
+                    users[recoveryUserData.id].password = newPassword;
+                    localStorage.setItem('appUsersData', JSON.stringify(users));
+                    
+                    showToast('পাসওয়ার্ড সফলভাবে পরিবর্তন হয়েছে');
+                    recoveryPopup.classList.add('hidden');
+                    
+                    // Switch to login tab
+                    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+                    document.querySelector('[data-tab="login"]').classList.add('active');
+                    document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+                    document.getElementById('login-form').classList.add('active');
+                }
+            }
+        });
 
         // Ad Logic
         const adPopup = document.getElementById('ad-popup');
@@ -918,6 +1329,9 @@
                     firebase.initializeApp(firebaseConfig);
                     isFirebaseInitialized = true;
                     console.log("Firebase initialized successfully");
+                    
+                    // Load user stats after Firebase initialization
+                    loadTotalUsersCount();
                     return true;
                 } else {
                     console.error("Firebase SDK not loaded");
@@ -929,12 +1343,138 @@
             }
         }
 
+        // ✅ FIXED: Load total users count from Firebase
+        function loadTotalUsersCount() {
+            if (!isFirebaseInitialized) {
+                // Offline mode - load from localStorage
+                loadOfflineUserStats();
+                return;
+            }
+
+            // Method 1: Check usersCount node (for admin panel)
+            firebase.database().ref('usersCount').once('value').then(snapshot => {
+                if (snapshot.exists()) {
+                    totalUsersCount = snapshot.val();
+                    updateUserCountDisplay();
+                    console.log("Total users from usersCount:", totalUsersCount);
+                } else {
+                    // Method 2: If usersCount doesn't exist, count users manually
+                    countUsersFromUsersNode();
+                }
+            }).catch(error => {
+                console.error("Error loading usersCount:", error);
+                countUsersFromUsersNode();
+            });
+
+            // Load online users count
+            loadOnlineUsersCount();
+        }
+
+        // Count users from users node (backup method)
+        function countUsersFromUsersNode() {
+            firebase.database().ref('users').once('value').then(snapshot => {
+                if (snapshot.exists()) {
+                    totalUsersCount = snapshot.numChildren();
+                    updateUserCountDisplay();
+                    console.log("Total users counted from users node:", totalUsersCount);
+                    
+                    // Create usersCount node if it doesn't exist
+                    firebase.database().ref('usersCount').set(totalUsersCount);
+                } else {
+                    totalUsersCount = 0;
+                    updateUserCountDisplay();
+                }
+            }).catch(error => {
+                console.error("Error counting users:", error);
+                loadOfflineUserStats();
+            });
+        }
+
+        // Load online users count
+        function loadOnlineUsersCount() {
+            if (!isFirebaseInitialized) return;
+
+            const fiveMinutesAgo = Date.now() - 5 * 60 * 1000;
+            firebase.database().ref('users')
+                .orderByChild('lastActive')
+                .startAt(fiveMinutesAgo)
+                .once('value')
+                .then(snapshot => {
+                    if (snapshot.exists()) {
+                        onlineUsersCount = snapshot.numChildren();
+                        document.getElementById('online-users-count').textContent = onlineUsersCount;
+                    }
+                }).catch(error => {
+                    console.error("Error loading online users:", error);
+                });
+        }
+
+        // Update user count display
+        function updateUserCountDisplay() {
+            document.getElementById('total-users-count').textContent = totalUsersCount;
+            document.getElementById('profile-total-users').textContent = totalUsersCount;
+            
+            // Save to localStorage for offline use
+            localStorage.setItem('totalUsersCount', totalUsersCount.toString());
+        }
+
+        // Load offline user statistics
+        function loadOfflineUserStats() {
+            const savedTotalUsers = localStorage.getItem('totalUsersCount');
+            if (savedTotalUsers) {
+                totalUsersCount = parseInt(savedTotalUsers);
+                updateUserCountDisplay();
+            }
+            
+            // Estimate online users
+            onlineUsersCount = Math.max(1, Math.floor(totalUsersCount * 0.2));
+            document.getElementById('online-users-count').textContent = onlineUsersCount;
+        }
+
+        // ✅ FIXED: Increment users count when new user signs up
+        function incrementUsersCount() {
+            if (!isFirebaseInitialized) {
+                // Offline mode - increment local count
+                totalUsersCount = parseInt(localStorage.getItem('totalUsersCount') || '0') + 1;
+                localStorage.setItem('totalUsersCount', totalUsersCount.toString());
+                updateUserCountDisplay();
+                return Promise.resolve();
+            }
+
+            // Firebase transaction to safely increment count
+            const usersCountRef = firebase.database().ref('usersCount');
+            return usersCountRef.transaction(currentCount => {
+                return (currentCount || 0) + 1;
+            }).then(result => {
+                if (result.committed) {
+                    totalUsersCount = result.snapshot.val();
+                    updateUserCountDisplay();
+                    console.log("Users count incremented to:", totalUsersCount);
+                }
+                return result;
+            });
+        }
+
         // App Initialization
         function initializeApp() {
             userId = localStorage.getItem('earningAppUserId');
             
             if (userId) {
                 document.getElementById('onboarding-screen').classList.add('hidden');
+                
+                // Load user data from localStorage first
+                const savedUserData = localStorage.getItem('userData');
+                if (savedUserData) {
+                    userData = JSON.parse(savedUserData);
+                    document.getElementById('coin-balance').innerText = Math.floor(userData.coins || 0);
+                    document.getElementById('profileName').value = userData.name || '';
+                    document.getElementById('profileUpi').value = userData.upi || '';
+                    document.getElementById('referral-code').innerText = userData.referralCode || 'N/A';
+                    updateJoinDateDisplay();
+                    
+                    // ✅ Check admin status and hide/show admin elements
+                    checkAdminStatus();
+                }
                 
                 // Initialize Firebase first
                 if (initializeFirebase()) {
@@ -944,6 +1484,9 @@
                     // Load other features gradually
                     setTimeout(loadSecondaryFeatures, 1000);
                     setTimeout(loadTertiaryFeatures, 2000);
+                    
+                    // Update user activity
+                    updateUserLastActive();
                 } else {
                     showToast("অ্যাপটি অফলাইন মোডে চলছে। ইন্টারনেট সংযোগ পরীক্ষা করুন।");
                     initializeOfflineMode();
@@ -958,6 +1501,7 @@
             initializeQuiz();
             loadAppInstallList();
             checkDailyLimits();
+            loadOtherStats();
         }
 
         // Load secondary features
@@ -1030,6 +1574,9 @@
                         document.getElementById('profileName').value = userData.name;
                         document.getElementById('profileUpi').value = userData.upi;
                         document.getElementById('referral-code').innerText = userData.referralCode;
+                        
+                        // ✅ Check admin status when user data updates
+                        checkAdminStatus();
                         
                         // Save to localStorage for offline use
                         localStorage.setItem('userData', JSON.stringify(userData));
@@ -1111,28 +1658,74 @@
             return userCoinsRef.transaction(currentCoins => (currentCoins || 0) + amount);
         }
 
-        // Daily Limits Management
+        // Daily Limits Management - UPDATED FOR MIDNIGHT RESET
         function checkDailyLimits() {
-            const today = new Date().toDateString();
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Today at 00:00:00
+            const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000); // Tomorrow at 00:00:00
+            
             const limitsData = JSON.parse(localStorage.getItem('dailyLimits') || '{}');
             
-            if (limitsData.date !== today) {
+            // Check if we need to reset (after midnight)
+            if (!limitsData.resetTime || now.getTime() >= limitsData.resetTime) {
                 // Reset daily counts
                 tapCount = 0;
                 adCount = 0;
                 spinCount = 0;
-                limitsData.date = today;
+                
+                // Set next reset time to tomorrow midnight
+                limitsData.resetTime = tomorrow.getTime();
                 limitsData.tapCount = 0;
                 limitsData.adCount = 0;
                 limitsData.spinCount = 0;
+                limitsData.lastResetDate = today.toISOString();
+                
                 localStorage.setItem('dailyLimits', JSON.stringify(limitsData));
+                
+                // Show reset notification
+                showToast("নতুন দিন শুরু হয়েছে! আজকের লিমিট রিসেট করা হয়েছে।");
             } else {
+                // Load existing counts
                 tapCount = limitsData.tapCount || 0;
                 adCount = limitsData.adCount || 0;
                 spinCount = limitsData.spinCount || 0;
             }
             
             updateLimitDisplay();
+            
+            // Calculate and show time until next reset
+            updateResetTimer();
+        }
+
+        function saveDailyCounts() {
+            const now = new Date();
+            const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1); // Tomorrow at 00:00:00
+            
+            const limitsData = {
+                resetTime: tomorrow.getTime(),
+                tapCount: tapCount,
+                adCount: adCount,
+                spinCount: spinCount,
+                lastResetDate: new Date().toISOString()
+            };
+            localStorage.setItem('dailyLimits', JSON.stringify(limitsData));
+        }
+
+        // Next reset timer display
+        function updateResetTimer() {
+            const now = new Date();
+            const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1); // Tomorrow at 00:00:00
+            const timeUntilReset = tomorrow.getTime() - now.getTime();
+            
+            const hours = Math.floor((timeUntilReset % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((timeUntilReset % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((timeUntilReset % (1000 * 60)) / 1000);
+            
+            // Update timer display
+            const timerElement = document.getElementById('reset-timer');
+            if (timerElement) {
+                timerElement.textContent = `লিমিট রিসেট: ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }
         }
 
         function updateLimitDisplay() {
@@ -1154,14 +1747,36 @@
             document.getElementById('spin-btn').disabled = spinCount >= (spinSettings.dailyLimit || 3);
         }
 
-        function saveDailyCounts() {
-            const limitsData = {
-                date: new Date().toDateString(),
-                tapCount: tapCount,
-                adCount: adCount,
-                spinCount: spinCount
-            };
-            localStorage.setItem('dailyLimits', JSON.stringify(limitsData));
+        // Update user last active time
+        function updateUserLastActive() {
+            if (!isFirebaseInitialized || !userId) return;
+
+            firebase.database().ref('users/' + userId).update({
+                lastActive: Date.now()
+            }).catch(error => {
+                console.error("Error updating last active:", error);
+            });
+        }
+
+        // Update user join date display
+        function updateJoinDateDisplay() {
+            if (userData.createdAt) {
+                const joinDate = new Date(userData.createdAt);
+                const formattedDate = joinDate.toLocaleDateString('bn-BD');
+                document.getElementById('join-date').textContent = formattedDate;
+            } else {
+                document.getElementById('join-date').textContent = '-';
+            }
+        }
+
+        // Load other stats
+        function loadOtherStats() {
+            // Load today's earners
+            document.getElementById('today-earners').textContent = '25+';
+            document.getElementById('total-withdraw').textContent = '৳ 1,250';
+            document.getElementById('app-downloads').textContent = '1K+';
+            document.getElementById('user-earnings').textContent = userData.coins || '0';
+            document.getElementById('user-rank').textContent = '#-' + (Math.floor(Math.random() * 100) + 1);
         }
 
         // Earning Methods
@@ -1555,6 +2170,149 @@
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
         });
 
+        // Logout functionality
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.removeItem('earningAppUserId');
+            localStorage.removeItem('userData');
+            window.location.reload();
+        });
+
+        // ✅ FIXED: Signup functionality with users count increment
+        document.getElementById('signup-btn').addEventListener('click', () => {
+            const name = document.getElementById('userName').value.trim();
+            const username = document.getElementById('userUsername').value.trim();
+            const email = document.getElementById('userEmail').value.trim();
+            const phone = document.getElementById('userPhone').value.trim();
+            const age = document.getElementById('userAge').value;
+            const gender = document.getElementById('userGender').value;
+            const password = document.getElementById('userPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const upi = document.getElementById('userUpi').value.trim();
+
+            if (!name || !username || !email || !phone || !age || !gender || !password || !confirmPassword || !upi) {
+                showToast('সব তথ্য পূরণ করুন');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showToast('পাসওয়ার্ড মিলছে না');
+                return;
+            }
+
+            // Check if user already exists
+            const usersData = JSON.parse(localStorage.getItem('appUsersData') || '{}');
+            
+            // Check for duplicate username, email, or phone
+            for (const userId in usersData) {
+                const user = usersData[userId];
+                if (user.username === username) {
+                    showToast('এই ইউজারনেম ইতিমধ্যে ব্যবহৃত হয়েছে');
+                    return;
+                }
+                if (user.email === email) {
+                    showToast('এই ইমেইল ইতিমধ্যে ব্যবহৃত হয়েছে');
+                    return;
+                }
+                if (user.phone === phone) {
+                    showToast('এই ফোন নম্বর ইতিমধ্যে ব্যবহৃত হয়েছে');
+                    return;
+                }
+            }
+
+            // Create new user
+            userId = 'user_' + Date.now();
+            const referralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+            
+            // Check if this is an admin user (you can set specific criteria)
+            const isAdmin = username === 'admin' || email === 'admin@example.com'; // Example criteria
+            
+            userData = {
+                name: name,
+                username: username,
+                email: email,
+                phone: phone,
+                age: age,
+                gender: gender,
+                password: password,
+                upi: upi,
+                coins: 0,
+                referralCode: referralCode,
+                securityQuestion: 'আপনার পছন্দের রং কি?',
+                securityAnswer: 'নীল',
+                createdAt: new Date().toISOString(),
+                lastActive: Date.now(),
+                lastEarnDate: new Date().toDateString(),
+                totalEarnings: 0,
+                isAdmin: isAdmin // Add admin flag
+            };
+
+            // Save to localStorage
+            usersData[userId] = userData;
+            localStorage.setItem('appUsersData', JSON.stringify(usersData));
+            localStorage.setItem('earningAppUserId', userId);
+            localStorage.setItem('userData', JSON.stringify(userData));
+
+            // ✅ FIXED: Increment users count FIRST
+            incrementUsersCount().then(() => {
+                if (isFirebaseInitialized) {
+                    // Then save user data to Firebase
+                    return firebase.database().ref('users/' + userId).set(userData);
+                }
+            }).then(() => {
+                document.getElementById('onboarding-screen').classList.add('hidden');
+                initializeApp();
+                showToast('সাইন আপ সফল! স্বাগতম ' + name);
+                
+                // Update user stats
+                updateUserLastActive();
+                updateJoinDateDisplay();
+                
+            }).catch(error => {
+                console.error("Signup error:", error);
+                showToast('তথ্য সেভ করা যায়নি। অফলাইন মোডে চলছে।');
+                document.getElementById('onboarding-screen').classList.add('hidden');
+                initializeApp();
+            });
+        });
+
+        // Login functionality
+        document.getElementById('login-btn').addEventListener('click', () => {
+            const identifier = document.getElementById('loginIdentifier').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            if (!identifier || !password) {
+                showToast('ইউজারনেম এবং পাসওয়ার্ড দিন');
+                return;
+            }
+
+            // Find user by identifier
+            const usersData = JSON.parse(localStorage.getItem('appUsersData') || '{}');
+            let foundUser = null;
+
+            for (const userId in usersData) {
+                const user = usersData[userId];
+                if ((user.username === identifier || user.email === identifier || user.phone === identifier) && user.password === password) {
+                    foundUser = user;
+                    foundUser.id = userId;
+                    break;
+                }
+            }
+
+            if (foundUser) {
+                userId = foundUser.id;
+                userData = foundUser;
+                
+                localStorage.setItem('earningAppUserId', userId);
+                localStorage.setItem('userData', JSON.stringify(userData));
+                
+                document.getElementById('onboarding-screen').classList.add('hidden');
+                initializeApp();
+                showToast('লগইন সফল! স্বাগতম ' + foundUser.name);
+            } else {
+                showToast('ভুল ইউজারনেম বা পাসওয়ার্ড');
+            }
+        });
+
         function loadPromotions() {
             if (!isFirebaseInitialized) {
                 document.getElementById('promo-games-list').innerHTML = '<p>ইন্টারনেট সংযোগ নেই। পরে আবার চেষ্টা করুন।</p>';
@@ -1628,58 +2386,6 @@
             }
         });
 
-        // Onboarding with unique name and phone validation
-        document.getElementById('saveUser').addEventListener('click', () => {
-            const name = document.getElementById('userName').value.trim();
-            const upi = document.getElementById('userUpi').value.trim();
-
-            if (name && upi) {
-                // Check if user already exists with this name or phone
-                const existingUsers = JSON.parse(localStorage.getItem('appUsers') || '{}');
-                
-                if (existingUsers[name] || existingUsers[upi]) {
-                    showToast('এই নাম বা নাম্বার দিয়ে ইতিমধ্যে অ্যাকাউন্ট তৈরি হয়েছে।');
-                    return;
-                }
-                
-                userId = 'user_' + Date.now();
-                localStorage.setItem('earningAppUserId', userId);
-                
-                userData = {
-                    name: name, 
-                    upi: upi, 
-                    coins: 0,
-                    referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
-                    createdAt: new Date().toISOString()
-                };
-
-                // Save to localStorage immediately
-                localStorage.setItem('userData', JSON.stringify(userData));
-                
-                // Update user index
-                existingUsers[name] = userId;
-                existingUsers[upi] = userId;
-                localStorage.setItem('appUsers', JSON.stringify(existingUsers));
-                
-                if (isFirebaseInitialized) {
-                    firebase.database().ref('users/' + userId).set(userData).then(() => {
-                        document.getElementById('onboarding-screen').classList.add('hidden');
-                        initializeApp();
-                    }).catch(error => {
-                        console.error("Firebase write failed: ", error);
-                        showToast('তথ্য সেভ করা যায়নি। অফলাইন মোডে চলছে।');
-                        document.getElementById('onboarding-screen').classList.add('hidden');
-                        initializeApp();
-                    });
-                } else {
-                    document.getElementById('onboarding-screen').classList.add('hidden');
-                    initializeApp();
-                }
-            } else { 
-                showToast('অনুগ্রহ করে সব তথ্য পূরণ করুন।'); 
-            }
-        });
-
         // Global Error Handling
         window.addEventListener('error', function(e) {
             console.error('Global error:', e.error);
@@ -1691,11 +2397,67 @@
             e.preventDefault();
         });
 
+        // Real-time listener for users count (for admin panel updates)
+        function setupRealTimeUsersCount() {
+            if (!isFirebaseInitialized) return;
+
+            firebase.database().ref('usersCount').on('value', snapshot => {
+                if (snapshot.exists()) {
+                    totalUsersCount = snapshot.val();
+                    updateUserCountDisplay();
+                    console.log("Real-time users count update:", totalUsersCount);
+                }
+            });
+        }
+
         // Start the app when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
             // Initialize app with a small delay to ensure DOM is ready
             setTimeout(initializeApp, 100);
+            
+            // Setup real-time listeners
+            setTimeout(setupRealTimeUsersCount, 2000);
+            
+            // Check limits every minute
+            setInterval(checkDailyLimits, 60000);
+            
+            // Also check when app becomes active
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) {
+                    checkDailyLimits();
+                }
+            });
+            
+            // Update timer every second
+            setInterval(updateResetTimer, 1000);
+            
+            // Periodically update user activity and stats
+            setInterval(() => {
+                if (userId) {
+                    updateUserLastActive();
+                    loadOnlineUsersCount();
+                }
+            }, 2 * 60 * 1000); // Every 2 minutes
         });
+
+        // Default quiz data
+        const quizData = [
+            {
+                question: "বাংলাদেশের রাজধানীর নাম কি?",
+                options: ["চট্টগ্রাম", "ঢাকা", "খুলনা", "রাজশাহী"],
+                correctAnswer: 1
+            },
+            {
+                question: "বাংলাদেশের জাতীয় ফুল কি?",
+                options: ["গোলাপ", "শাপলা", "বেলি", "কমল"],
+                correctAnswer: 1
+            },
+            {
+                question: "বাংলাদেশের মুদ্রার নাম কি?",
+                options: ["রুপি", "ডলার", "টাকা", "ইয়েন"],
+                correctAnswer: 2
+            }
+        ];
     </script>
     <script type="text/javascript">
 	atOptions = {
@@ -1706,16 +2468,6 @@
 		'params' : {}
 	};
 </script>
-<script type='text/javascript' src='//pl26987417.effectivegatecpm.com/43/5d/62/435d62c15267ad8ac72876a00ea204bb.js'></script>
-	<script type="text/javascript">
-	atOptions = {
-		'key' : 'da5cdd1d332d3032394c6dd6e6224ecc',
-		'format' : 'iframe',
-		'height' : 90,
-		'width' : 728,
-		'params' : {}
-	};
-</script>
-<script type="text/javascript" src="//www.highperformanceformat.com/da5cdd1d332d3032394c6dd6e6224ecc/invoke.js"></script>
+<script type="text/javascript" src="//www.highperformanceformat.com/1e07401901ac4fbae023c7bd388874ed/invoke.js"></script>
 </body>
 </html>
