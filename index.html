@@ -287,6 +287,7 @@
             font-size: 1.2em;
             margin-bottom: 20px;
             font-weight: 600;
+            min-height: 40px; /* To prevent layout shift */
         }
         
         .quiz-options {
@@ -741,7 +742,6 @@
                 <div class="auth-tab" data-tab="signup">সাইন আপ</div>
             </div>
             
-            <!-- লগইন ফর্ম -->
             <div id="login-form" class="auth-form active">
                 <input type="text" id="loginIdentifier" placeholder="ইউজারনেম, ইমেইল বা ফোন নম্বর" required>
                 <input type="password" id="loginPassword" placeholder="আপনার পাসওয়ার্ড দিন" required>
@@ -749,7 +749,6 @@
                 <div class="forgot-password" id="forgot-password-link">পাসওয়ার্ড ভুলে গেছেন?</div>
             </div>
             
-            <!-- সাইন আপ ফর্ম -->
             <div id="signup-form" class="auth-form">
                 <input type="text" id="userName" placeholder="আপনার নাম দিন" required>
                 <input type="text" id="userUsername" placeholder="ইউজারনেম তৈরি করুন" required>
@@ -774,26 +773,22 @@
         </div>
     </div>
 
-    <!-- পাসওয়ার্ড রিকভারি পপআপ -->
     <div id="recovery-popup" class="hidden">
         <div id="recovery-box">
             <h4>পাসওয়ার্ড রিকভারি</h4>
             
-            <!-- ধাপ ১: ইউজার আইডেন্টিফায়ার -->
             <div id="recovery-step-1" class="recovery-step active">
                 <p>আপনার ইউজারনেম, ইমেইল বা ফোন নম্বর দিন</p>
                 <input type="text" id="recovery-identifier" placeholder="ইউজারনেম, ইমেইল বা ফোন নম্বর">
                 <button id="recovery-next-1" class="btn btn-primary">পরবর্তী</button>
             </div>
             
-            <!-- ধাপ ২: নিরাপত্তা প্রশ্ন -->
             <div id="recovery-step-2" class="recovery-step">
                 <p id="security-question-text">নিরাপত্তা প্রশ্ন লোড হচ্ছে...</p>
                 <input type="text" id="security-answer" placeholder="উত্তর দিন">
                 <button id="recovery-next-2" class="btn btn-primary">পরবর্তী</button>
             </div>
             
-            <!-- ধাপ ৩: নতুন পাসওয়ার্ড সেট করুন -->
             <div id="recovery-step-3" class="recovery-step">
                 <p>আপনার নতুন পাসওয়ার্ড সেট করুন</p>
                 <input type="password" id="new-password" placeholder="নতুন পাসওয়ার্ড">
@@ -874,7 +869,6 @@
 
     <div class="container">
         <div id="home-page" class="page">
-            <!-- রিসেট টাইমার -->
             <div id="reset-timer">লিমিট রিসেট: ০০:০০:০০</div>
 
             <div class="header">
@@ -884,14 +878,12 @@
                 </div>
             </div>
 
-            <!-- এডমিন স্ট্যাটস (শুধুমাত্র এডমিন দেখতে পারবে) -->
             <div class="admin-stats admin-only">
                 <h4>🟢 মোট রেজিস্টার্ড ইউজার</h4>
                 <div class="number" id="total-users-count">0</div>
                 <div style="font-size: 0.8em; opacity: 0.9;">এখনই অনলাইন: <span id="online-users-count">0</span> জন</div>
             </div>
 
-            <!-- ইউজার স্ট্যাটস -->
             <div class="user-stats">
                 <div class="stat-item">
                     <div class="stat-number" id="today-earners">0</div>
@@ -994,14 +986,12 @@
                 <input type="text" id="profileUpi">
                 <button id="update-profile-btn" class="btn btn-primary">প্রোফাইল আপডেট করুন</button>
                 
-                <!-- এডমিন স্ট্যাটস (শুধুমাত্র এডমিন দেখতে পারবে) -->
                 <div class="admin-stats admin-only" style="margin-top: 15px;">
                     <h4>📊 অ্যাপ স্ট্যাটিস্টিক্স</h4>
                     <div class="number" id="profile-total-users">0</div>
                     <div style="font-size: 0.8em; opacity: 0.9;">মোট রেজিস্টার্ড ইউজার</div>
                 </div>
                 
-                <!-- ব্যক্তিগত স্ট্যাটস -->
                 <div class="user-stats">
                     <div class="stat-item">
                         <div class="stat-number" id="user-rank">-</div>
@@ -1117,6 +1107,10 @@
         let recoveryStep = 1;
         let totalUsersCount = 0;
         let onlineUsersCount = 0;
+        
+        // ✅ NEW: Quiz Cooldown Variables
+        let canPlayQuiz = true; 
+        let quizCooldownEndTime = null;
 
         // Toast Notification
         function showToast(message) {
@@ -1418,19 +1412,6 @@
             localStorage.setItem('totalUsersCount', totalUsersCount.toString());
         }
 
-        // Load offline user statistics
-        function loadOfflineUserStats() {
-            const savedTotalUsers = localStorage.getItem('totalUsersCount');
-            if (savedTotalUsers) {
-                totalUsersCount = parseInt(savedTotalUsers);
-                updateUserCountDisplay();
-            }
-            
-            // Estimate online users
-            onlineUsersCount = Math.max(1, Math.floor(totalUsersCount * 0.2));
-            document.getElementById('online-users-count').textContent = onlineUsersCount;
-        }
-
         // ✅ FIXED: Increment users count when new user signs up
         function incrementUsersCount() {
             if (!isFirebaseInitialized) {
@@ -1580,6 +1561,9 @@
                         
                         // Save to localStorage for offline use
                         localStorage.setItem('userData', JSON.stringify(userData));
+                        
+                        // Re-check quiz limit if data updates
+                        checkQuizLimit();
                     }
                 });
             } catch (error) {
@@ -1936,6 +1920,70 @@
             });
         }
 
+        // Quiz Cooldown Logic (NEWLY ADDED)
+        function checkQuizLimit() {
+            const lastQuizTime = userData.lastQuizTime || 0;
+            const cooldownDuration = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+            const now = Date.now();
+            
+            // Check if 24 hours have passed since the last play
+            if (now - lastQuizTime >= cooldownDuration) {
+                canPlayQuiz = true;
+                quizCooldownEndTime = null;
+            } else {
+                canPlayQuiz = false;
+                quizCooldownEndTime = lastQuizTime + cooldownDuration;
+            }
+            
+            updateQuizUI();
+        }
+
+        function updateQuizUI() {
+            const quizContainer = document.querySelector('.quiz-container');
+            const quizQuestion = document.getElementById('quiz-question');
+            const quizOptions = document.getElementById('quiz-options');
+            const nextButton = document.getElementById('next-question-btn');
+            
+            // Safety check for elements
+            if (!quizContainer || !quizQuestion || !quizOptions || !nextButton) return;
+
+            if (canPlayQuiz) {
+                // Quiz is available
+                if (quizQuestions.length > 0 && currentQuestionIndex < quizQuestions.length) {
+                    // Only load the next question if there are questions left and not currently on cooldown
+                    if (quizQuestion.textContent === 'প্রশ্ন লোড হচ্ছে...' || quizOptions.children.length === 0) {
+                        loadNextQuestion(); // Reload the current question if UI is empty
+                    }
+                } else if (quizQuestions.length === 0) {
+                     quizQuestion.textContent = 'কুইজ প্রশ্ন লোড হচ্ছে... অপেক্ষা করুন।';
+                }
+                quizContainer.style.opacity = '1';
+                quizContainer.style.pointerEvents = 'auto';
+                
+            } else {
+                // Quiz is on cooldown
+                quizContainer.style.opacity = '0.5';
+                quizContainer.style.pointerEvents = 'none';
+
+                const remainingTime = quizCooldownEndTime - Date.now();
+                
+                if (remainingTime <= 0) {
+                    // If remaining time is zero or negative, reset and allow playing
+                    checkQuizLimit();
+                    return;
+                }
+                
+                const hours = Math.floor(remainingTime / (1000 * 60 * 60));
+                const minutes = Math.floor((remainingTime % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((remainingTime % (1000 * 60)) / 1000);
+
+                quizQuestion.innerHTML = `কুইজ বর্তমানে বন্ধ। <b>${hours.toString().padStart(2, '0')} ঘণ্টা ${minutes.toString().padStart(2, '0')} মিনিট ${seconds.toString().padStart(2, '0')} সেকেন্ড</b> পর আবার খেলতে পারবেন।`;
+                quizOptions.innerHTML = ''; // Clear options
+                document.getElementById('quiz-result').textContent = '';
+                nextButton.classList.add('hidden');
+            }
+        }
+        
         // Quiz Game - UPDATED SYSTEM
         function initializeQuiz() {
             // Load quiz questions from Firebase or use default
@@ -1949,16 +1997,24 @@
                         // Use default questions if no questions in Firebase
                         quizQuestions = [...quizData];
                     }
-                    loadNextQuestion();
+                    // ✅ NEW: Check the limit after loading questions
+                    checkQuizLimit();
                 });
             } else {
                 // Use default questions in offline mode
                 quizQuestions = [...quizData];
-                loadNextQuestion();
+                // ✅ NEW: Check the limit for offline mode
+                checkQuizLimit();
             }
         }
 
         function loadNextQuestion() {
+            // Only proceed if quiz is available
+            if (!canPlayQuiz) {
+                updateQuizUI();
+                return;
+            }
+            
             const questionElement = document.getElementById('quiz-question');
             const optionsElement = document.getElementById('quiz-options');
             const resultElement = document.getElementById('quiz-result');
@@ -1990,6 +2046,22 @@
         function showQuizComplete() {
             // Award coins after completing all questions
             updateCoins(quizReward).then(() => {
+                // ✅ NEW: Save the current time as last played time
+                const now = Date.now();
+                if (isFirebaseInitialized && userId) {
+                    // Update on Firebase
+                    firebase.database().ref('users/' + userId).update({
+                        lastQuizTime: now
+                    });
+                } else {
+                    // Update in offline/local state
+                    userData.lastQuizTime = now;
+                    localStorage.setItem('userData', JSON.stringify(userData));
+                }
+                
+                // Update the limit check immediately
+                checkQuizLimit(); 
+                
                 document.getElementById('quiz-complete-message').textContent = 
                     `আপনি সমস্ত প্রশ্ন সফলভাবে সম্পন্ন করেছেন! ${quizReward} কয়েন পুরস্কার পেয়েছেন!`;
                 quizCompletePopup.classList.remove('hidden');
@@ -2243,7 +2315,8 @@
                 lastActive: Date.now(),
                 lastEarnDate: new Date().toDateString(),
                 totalEarnings: 0,
-                isAdmin: isAdmin // Add admin flag
+                isAdmin: isAdmin, // Add admin flag
+                lastQuizTime: 0 // ✅ NEW: Initialize last quiz time
             };
 
             // Save to localStorage
@@ -2382,6 +2455,11 @@
                     document.getElementById(pageId).classList.remove('hidden');
                     navButtons.forEach(b => b.classList.remove('active'));
                     button.classList.add('active');
+                    
+                    // ✅ NEW: Check quiz limit when navigating to the game page
+                    if (pageId === 'game-page') {
+                        checkQuizLimit(); 
+                    }
                 }
             }
         });
@@ -2431,6 +2509,13 @@
             // Update timer every second
             setInterval(updateResetTimer, 1000);
             
+            // ✅ NEW: Update quiz cooldown timer every second
+            setInterval(() => {
+                if (quizCooldownEndTime && !canPlayQuiz && !document.getElementById('game-page').classList.contains('hidden')) {
+                    updateQuizUI();
+                }
+            }, 1000);
+
             // Periodically update user activity and stats
             setInterval(() => {
                 if (userId) {
@@ -2468,18 +2553,6 @@
 		'params' : {}
 	};
 </script>
-	<script type="text/javascript">
-	atOptions = {
-		'key' : 'da5cdd1d332d3032394c6dd6e6224ecc',
-		'format' : 'iframe',
-		'height' : 90,
-		'width' : 728,
-		'params' : {}
-	};
-</script>
-	<script type='text/javascript' src='//pl26703898.effectivegatecpm.com/3b/9c/55/3b9c5561fde2a1d699ed1c5c3e2347e7.js'></script>
-<script type="text/javascript" src="//www.highperformanceformat.com/da5cdd1d332d3032394c6dd6e6224ecc/invoke.js"></script>
-	<script type='text/javascript' src='//pl26987417.effectivegatecpm.com/43/5d/62/435d62c15267ad8ac72876a00ea204bb.js'></script>
-<script type='text/javascript' src='//pl26987417.effectivegatecpm.com/43/5d/62/435d62c15267ad8ac72876a00ea204bb.js'></script>
+<script type="text/javascript" src="//www.highperformanceformat.com/1e07401901ac4fbae023c7bd388874ed/invoke.js"></script>
 </body>
 </html>
